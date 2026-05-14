@@ -25,14 +25,12 @@ recoveryPasswordController.requestCode = async (req, res) => {
     const token = jsonwebtoken.sign(
       { email, code, userType: "customer", verified: false },
       config.JWT.secret,
-      //#3- ¿Cúano expira?
       { expiresIn: "15m" },
     );
 
     res.cookie("recoveryCookie", token, { maxAge: 15 * 60 * 1000 });
 
-    //Enviar correo electrónico
-    //#1' ¿Quién lo envía?
+    
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -41,7 +39,6 @@ recoveryPasswordController.requestCode = async (req, res) => {
       },
     });
 
-    //#2- ¿Quien lo recibe y como?
     const mailOptions = {
       from: config.email.user_email,
       to: email,
@@ -50,7 +47,6 @@ recoveryPasswordController.requestCode = async (req, res) => {
       html: HTMLRecoveryEmail(code),
     };
 
-    //#3-Enviar el correo
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log("error" + error);
@@ -67,28 +63,20 @@ recoveryPasswordController.requestCode = async (req, res) => {
   }
 };
 
-//VERIFICAR EL CÓDIGO
 recoveryPasswordController.verifyCode = async (req, res) => {
   try {
-    //#1-Solicitar los datos
     const { codeRequest } = req.body;
 
-    //Obtenemos la información que está dentro del token
-    //Accedo al token que está en la cookie recoveryCookie
+    
     const token = req.cookies.recoveryCookie;
     const decoded = jsonwebtoken.verify(token, config.JWT.secret);
 
-    //Comparar lo que el usuario escribió con lo que está en el token
     if (codeRequest !== decoded.code) {
       return res.status(400).json({ message: "Invalid code" });
     }
 
-    //Si lo escribe bien, vamos a colocar en el token
-    //que ya está vearificado
     const newToken = jsonwebtoken.sign(
-      //#1-Que vamos a guardar
       { email: decoded.email, userType: "customer", verified: true },
-      //#2-secret key
       config.JWT.secret,
       { expiresIn: "15m" },
     );
@@ -106,12 +94,10 @@ recoveryPasswordController.newPassword = async (req, res) => {
   try {
     const { newPassword, confirmNewPassword } = req.body;
 
-    //Comparar contraseñas
     if (newPassword !== confirmNewPassword) {
       return res.status(400).json({ message: "Passwords doesnt match" });
     }
 
-    //Vamos a comprobar al token si ya está verificado
     const token = req.cookies.recoveryCookie;
     const decoded = jsonwebtoken.verify(token, config.JWT.secret);
 
@@ -119,7 +105,6 @@ recoveryPasswordController.newPassword = async (req, res) => {
       return res.status(400).json({ message: "Code not verified" });
     }
 
-    //Encriptamos la contraseña
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await customerModel.findOneAndUpdate(

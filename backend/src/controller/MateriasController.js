@@ -1,8 +1,8 @@
-const subjectController = {};
+const MateriasController = {};
 
 import subjectModel from "../models/materias.js";
 
-subjectController.getSubjects = async (_req, res) => {
+MateriasController.getSubjects = async (_req, res) => {
   try {
     const subjects = await subjectModel.find();
     res.json(subjects);
@@ -11,7 +11,7 @@ subjectController.getSubjects = async (_req, res) => {
   }
 };
 
-subjectController.insertSubject = async (req, res) => {
+MateriasController.insertSubject = async (req, res) => {
   try {
     const { subjectName, teacher_id, isAvailable } = req.body;
     const newSubject = new subjectModel({
@@ -26,7 +26,7 @@ subjectController.insertSubject = async (req, res) => {
   }
 };
 
-subjectController.updateSubject = async (req, res) => {
+MateriasController.updateSubject = async (req, res) => {
   try {
     const { subjectName, teacher_id, isAvailable } = req.body;
     const updated = await subjectModel.findByIdAndUpdate(
@@ -41,7 +41,7 @@ subjectController.updateSubject = async (req, res) => {
   }
 };
 
-subjectController.deleteSubject = async (req, res) => {
+MateriasController.deleteSubject = async (req, res) => {
   try {
     const deleted = await subjectModel.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Subject not found" });
